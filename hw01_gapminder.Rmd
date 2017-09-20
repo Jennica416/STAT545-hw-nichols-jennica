@@ -1,0 +1,36 @@
+---
+title: "Learning Markdown"
+author: "Jennica Nichols"
+date: "September 14, 2017"
+output: 
+  github_document
+---
+#Homework Assignment
+I am updating this form to add to my first homework assignment for class. While I would normally aim to finish this before class, I was defending my comps today. **Happy to say I passed**.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown 
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Look at gapminder data
+```{r, warning=FALSE}
+library(gapminder)
+
+##look at Canada data
+subset(gapminder, gapminder$country=="Canada")
+
+##subset Canadian life expectancy
+gapCanada <- subset(gapminder, gapminder$country=="Canada")
+
+##plot Canadian life expectancy over time
+plot(gapCanada$year, gapCanada$lifeExp)
+```
+
+
