@@ -1,0 +1,138 @@
+---
+title: "Homework Assignment 2"
+author: 'By: Jennica Nichols'
+date: "September 24, 2017"
+output: 
+  html_document:
+    toc: TRUE
+    keep_md: TRUE
+---
+This is the second homework assignment for STAT 545 that aims to be a personal cheat sheet for exploring a new data set.
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
+#load libraries
+library(gapminder)
+library(dplyr)
+```
+
+## Explore the Overall Object
+
+**Q1. What type of object is gapfinder?**
+```{r}
+typeof(gapminder)
+```
+It is a list.
+
+**Q2. What is gapminder's class?**
+```{r}
+typeof(gapminder)
+```
+It is "tbl_df", which has characteristics of both a table and data.frame. 
+
+**Q3. How many variables are there?**
+```{r}
+ncol(gapminder)
+```
+There are 6 variables.
+
+**Q4. How many observations are there?**
+```{r}
+nrow(gapminder)
+```
+There are 1704 observations in the gapminder object.
+
+**Q5. Can you get these facts about “extent” or “size” in more than one way? Can you imagine different functions being useful in different contexts?**
+```{r}
+str(gapminder)
+summary(gapminder)
+```
+The *str* function allows you to see the number of observations and variables along with the class and name of variable. This is really helpful to get an overall sense of the object because you can also see the number of levels in a factor and some of the values in each variable (starting with the smallest). The *summary* function is helpful in a different way. For number and integer variables, it shows you key summary statistics (e.g. mean, min, max, median). For factors, it tells you the factors as well as how many observations belong to each factor.  
+
+**Q6: What data type is each variable?**
+Based on the work above, you can see the classes of the variables:
+1. Country is a factor
+2. Continent is a factor
+3. Year is an integer
+4. Life Expectancy is a number
+5. Population is an integer
+6. GDP per capita is a number
+
+## Explore Individual Variables
+
+### Understanding a categorical variable
+This section explores the variable "Continent".
+```{r}
+summary(gapminder$continent) 
+plot(gapminder$continent)
+```
+Based on the summary, you can see the possible factors are: Africa, Americas, Asia, Europe, and Oceania. The plot helps you visualize the frequency of each with Africa having the most observations followed by Asia and the Europe. Oceania has the smallest number of observations. 
+
+### Understanding a quantitative variable
+
+This section explores the variable "Life Expectancy".
+```{r}
+summary(gapminder$lifeExp)
+
+plot(gapminder$lifeExp~gapminder$year)
+```
+Based on the summary, you can the mean is 59.47 years and the median is 60.71. The interquartile range is 22.65 years with a minimum value of 23.60 years and a maximum value of 82.60 years.  Based on the plot, you can see overall there is an increase in life expectancy over time, with some two major outliers. 
+
+## Exploring Plots
+This section tests out different types of plots available in the **ggplot2** package. 
+
+### Scatterplots
+```{r message=FALSE}
+
+#load library
+library(ggplot2)
+
+#scatter plot of life expectancy vs year
+ggplot(gapminder, aes(x=year, y=lifeExp)) +
+  geom_point(size=2, shape=23, aes(colour = continent))
+```
+
+### One Quantitative Variable
+```{r}
+##subset 2007 data
+data2007 <- gapminder %>%
+  filter(year==2007)
+
+##look at histogram of GDP per Capita
+ggplot(data2007, aes(data2007$gdpPercap)) + 
+  geom_histogram(aes(fill=data2007$continent)) 
+    
+```
+
+### Testing out faceting
+```{r}
+#make a scatterplot of GDP per capita and life expectancy
+p2 <- ggplot(gapminder, aes(x=gdpPercap, y=lifeExp)) + geom_point(aes(alpha=1/20))
+
+#Take advantage of facetting (factoring)
+p2 + facet_wrap(~continent)
+```
+
+
+## Using dplyr functions and piping
+```{r}
+#Looking at countries with the highest average life expectancy over time
+  gapminder %>%
+  group_by(country) %>%
+  summarize(meanLife = round(mean(lifeExp), 1)) %>%
+  arrange(desc(meanLife))
+```
+You can see that Iceland followed closely by Sweden have the highest life expectancy over time at 76.5 years and 76.2 years respectively. Canada is 6th (74.9 years).
+
+```{r}
+#Looking at countries with the highest average life expectancy over time
+  gapminder %>%
+  group_by(country) %>%
+  summarize(meanLife = round(mean(lifeExp), 1)) %>%
+  arrange(meanLife)
+```
+The countries with the lowest life expectancy over time are Sierra Leone (36.8 years), Afghanistan (37.5 years), and Angola (37.9 years). 
+
+```{r}
+gapminder %>%
+  filter(country %in% c("Canada", "Sierra Leone", "Iceland"), year == 2007)
+```
+Looking at the latest data (2007), you can see that Iceland has a life expectancy of 81.8 years while Sierra Leone's life expectancy is 42.6. That is a 39.2 year difference!  Canada's life expectancy in 2007 is 80.7 years. 
