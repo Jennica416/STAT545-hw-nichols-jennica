@@ -136,3 +136,6 @@ gapminder %>%
   filter(country %in% c("Canada", "Sierra Leone", "Iceland"), year == 2007)
 ```
 Looking at the latest data (2007), you can see that Iceland has a life expectancy of 81.8 years while Sierra Leone's life expectancy is 42.6. That is a 39.2 year difference!  Canada's life expectancy in 2007 is 80.7 years. 
+
+## Progress
+I have used Markdown and piping before, which made this assignment a bit easier. It took me a few tries to get the piping down right, but I am always impressed how efficient and powerful it is when it does work. It was my firt time using a Table of Contents and I really like that feature of Markdown. Personally, the biggest thing that stands out for this assignment was being reminded about how massive the health inequity is in the world when looking at life expectancy between countries. 
