@@ -1,0 +1,128 @@
+---
+title: "Homework Assignment 3"
+author: "By: Jennica Nichols"
+date: "October 1, 2017"
+output: 
+  html_document:
+    toc: true
+    keep_md: true
+---
+The purpose of this assignment is to get more familiar using **dplyr** and **ggplot2** packages to explore a data set. **Gapminder** will be the data set used for this work. Each question will include at least one table and graph to help to answer the question.
+
+```{r message = FALSE, warning = FALSE}
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+```
+
+## Question 1: What is the maximum and minimum of GDP per capita for all continents?
+
+```{r message=FALSE, warning = FALSE}
+# load library
+library(gridExtra)
+
+# create new dataset wuth minGDP and maxGDP variables that determine min and max GDP per capita by continent and year
+continentGDP <- 
+gapminder %>%
+ group_by(continent, year) %>%
+  summarise(minGDP=min(gdpPercap), maxGDP=max(gdpPercap))
+  
+# min GDP per capita by continent (regardless of year)
+round(by(continentGDP$minGDP, continentGDP$continent, min), 2)
+
+# max per capita by continent (regardless of year)
+round(by(continentGDP$maxGDP, continentGDP$continent, max),2)
+```
+The lowest GDP per capita by continent is Africa at $241.17/person while the highest is in the Oceania at $10,039.60/person. To better understand the trend of GDP per capita by continent, I wanted to explore the variable by continent and year. 
+
+````{r}
+# min by continent and year
+as.table(round(by(continentGDP$minGDP, continentGDP[,1:2], min), 2))
+
+# max by continent and year
+as.table(round(by(continentGDP$maxGDP, continentGDP[,1:2], max), 2))
+
+# plot minGDP and maxGDP  
+ plot1<- ggplot(continentGDP, aes(year, minGDP,
+                      colour=continent)) +
+    geom_point() +
+    theme(legend.position="bottom") +
+    geom_smooth(method="lm", se=FALSE) +
+    ggtitle("Minimum GDP per capita by Continent and Year") 
+    
+  plot2 <- ggplot(continentGDP, aes(year, maxGDP,
+                      colour=continent)) +
+    geom_point() +
+    theme(legend.position="bottom") +
+    geom_smooth(method="lm", se=FALSE) +
+    ggtitle("Maximum GDP per capita by Continent and Year")
+
+# print plots
+print(plot1)
+
+```
+   
+Based on the plot, you can see the minimum increased for Oceania, Europe,and Asia over time while the Americans look to have decreased overtime. Africa was increasing from 1952 to 1977, but then the trend decreases with the minimum GDP per capita in 2007 ($277.55/person) less than it was in 1952 (i.e. $298.85/person).
+
+```{r}
+print(plot2)
+```
+  
+Based on the plot, the maximum GDP has been increasing for all continents except Asia. Asia has a decreasing trend in the top GDP per capita over time. 
+
+## Question 2: What is the spread of GDP per capita within the continents?
+For this question, I decided to look at the spread of GDP per capita for all countries in the most recent year (2007).
+```{r warning = FALSE}
+#create dataset of only 2007 and calcuate median gdpPerCap by continent
+gap2007 <- gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  mutate(median = median(gdpPercap), mean = mean(gdpPercap))
+  
+#plot results  
+plot3 <- ggplot(gap2007, aes(gdpPercap))
+plot3 + geom_histogram(bins=10) + facet_wrap(~continent, ncol=1) +
+  geom_vline(aes(xintercept = median, colour = "Red"), show.legend = FALSE) +
+  geom_vline(aes(xintercept = mean, colour = "Blue"), show.legend = FALSE)
+  
+```
+  
+In 2007, GDP per capita was plotted by continent as a histogram to understand distribution. Two vertical lines were added to show median (blue) and mean (red) to better understand the distribution. The graph highlights that Africa has a large majority of its countries' GDP per capita rates on the far right, with the lowest median and mean values of all the continents. Asia has the widest distribution of GDP per capita among its countries, with the second lowest median highlighting more countries have a low GDP per capita rate. Europe is the only continent with a right skew, which means it is the only continent where the median is greater than the mean. Oceania only had two observations and therefore the mean and median are the same value.  
+
+# Question 3: How has life expectancy changing over time on different continents?
+```{r}
+#Look at mean and median per continent (across all years)
+gapminder %>%
+  group_by(continent) %>%
+  summarise(meanLife = round(mean(lifeExp),1), medianLife = round(median(lifeExp),1))
+
+#Create data set that includes mean and median by continent and year
+  life <-
+  gapminder %>%
+  group_by(continent, year) %>%
+  summarise(meanLife = round(mean(lifeExp),1), medianLife = round(median(lifeExp),1)) 
+
+#modify data set so only one observation per continent per year  
+  life <- life %>%
+    group_by(continent) %>%
+    mutate(year = unique(year))
+
+#plot data
+ggplot(life, aes(year, meanLife, colour = continent)) +
+  geom_point() +
+  geom_smooth(method="lm", se= TRUE) +
+  ggtitle("Average Life Expectancy by Continent over Time")
+```
+  
+From the graph, you can see that across all continents the average life expectancy has a positive trend (i.e. is increasing over time). Moreover, continents remain in the same rank relative to each over across the time period. For example, Africa has the lowest average life expectancy across all data points while Oceania has the highest over this same time period. Asia appears to have the highest rate of increase with the largest slope. Asia, Americas and Africa appear all appear to have average life expediencies that are below the trend line after 1996, which may be due to the HIV/AIDS pandemic as these continents were hit especially hard during this time period. To investigate this further, I looked at the range in average life expectancy by continent across all time periods. 
+```{r}
+#determine range between lowest average life expectancy and highest average life expectancy by continent  
+  life %>%
+    group_by(continent) %>%
+    summarise(Difference = max(meanLife) - min(meanLife)) 
+```
+  
+Asia has the highest range in average life expectancy (24.4 years) followed by the Americas (20.3 years). Oceania has the lowest range at 11.4 years. 
+
+# Reflections
+This exercise helped me to better understand the power of dplyr and piping. You can do a lot of significant steps all within a few lines a code and without needing to create new variables. That said, I had to practice and look at different entries in Stack Overflow to better understand how the function summarise() worked in order to apply it to my own work. Lastly, I found the graphing to be quite powerful. I had used this package before, but I had the opportunity to try new things that made me appreciate its power even more. For example, I learned how to add vertical lines to the ggplot2 graph that was based on mean and median lines, which is really helpful when comparing across different facets as well as to help me understand how the data was skewed. I found [here](https://stackoverflow.com/posts/35701887/edit) very informative on how to do this.  Overall, I liked this assignment. 
