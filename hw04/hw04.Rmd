@@ -1,0 +1,131 @@
+---
+title: "Homework Assignment 4"
+author: 'By: Jennica Nichols'
+date: "October 10, 2017"
+output: 
+  html_document:
+    toc: true
+    keep_md: true
+---
+
+Homework Assignment 4 is focused on tidying data and joining data sets. It uses the **gapminder** data set to do tasks. 
+
+```{r warning = FALSE, message = FALSE}
+## load librarys
+library(tidyverse)
+library(gapminder)
+```
+
+## Tidying data: Mission 1
+1. Make a tibble with one row per year and columns for life expectancy for two or more countries. 
+```{r warning=FALSE}
+#create Canada dataset
+Canada <-
+gapminder %>%
+  filter(country=="Canada") %>%
+  select(year, country, lifeExp, -continent, -pop, -gdpPercap)
+
+#create Kenya dataset
+Kenya <-
+gapminder %>%
+  filter(country=="Kenya") %>%
+  select(year, country, lifeExp, -continent, -pop, -gdpPercap)
+
+#join dataset to create 1
+lifeExp <- inner_join(Canada, Kenya, by="year")
+  
+```
+
+2. Use knitr::kable() to make this table look pretty in your rendered homework. 
+```{r warning=FALSE}
+# load library
+library(knitr)
+
+knitr::kable(lifeExp, format= "html", 
+             digits = 2,
+             align = "c",
+             col.names = c("Year", "Country_A", "lifeExp_A", "Country_B", "lifeExp_B"))
+```
+  
+  3. Take advantage of this new data shape to scatter plot life expectancy for one country against that of another.
+```{r warning=FALSE, message=FALSE}
+p <- ggplot(lifeExp, aes(x= lifeExp.x, y= lifeExp.y))
+p + geom_point(aes(colour = factor(year))) +
+  geom_smooth(se=FALSE) +
+  labs(x = "Canadian Life Expectancy (years)", 
+       y = "Kenyan Life Expectancy (years)",
+       title = "Life Expectancy of Kenya vs Canada from 1952-2007") +
+  theme_bw()+
+  theme(legend.position = "right",
+        legend.title = element_blank(),
+        legend.key.size = unit(0.1, "cm"))
+```
+  
+You can see from the above graph, both countries had an increase in their life expectancy from 1952 until 1987 as shown by the positive linear trend. After this, Kenya had a drop in their life expectancy over the next 4 time points while Canada continued to have a positive increase during this time. 
+
+## Join, Merge, Look Up: Mission 2
+1. Create a second data frame, complementary to Gapminder.
+```{r}
+# load library
+library(forcats)
+
+#create tribble
+(Travelling <- 
+  tibble(
+  country = factor(c("Canada", "Australia", "Kenya", "Tanzania", "Indonesia", "France", "Poland", "Rwanda", "Vatican City")), 
+  travelled = c("Yes", "Yes", "Yes", "Yes", "Yes", "Yes", "No", "No", "Yes"), 
+  lived = c("Yes", "No", "Yes", "Yes", "No", "No", "No", "No", "No")))
+
+```
+
+2. Join this with (part of) Gapminder using a  dplyr join function and make some observations about the process and result. Explore the different types of joins. 
+```{r, warning=FALSE}
+left_join(gapminder, Travelling, by="country")
+```
+**left_join()** adds the columns from the traveling data set to the gapminder data set based on country. All observations from gapminder are included, where countries not listed in the traveling data set have N/A for the new columns. It does not include countries in the traveling data set that are not in gapminder. This would be helpful if I wanted to do an analysis that involved not losing observations from the gapminder data set.
+
+```{r warning=FALSE}
+right_join(gapminder, Travelling, by="country")
+```
+**right_join()** adds the columns from the gapminder data set to the traveling data set based on country. Countries not listed in the traveling data set but in the gapminder data set have been excluded from the join. All rows from traveling are maintained using this function. This would be helpful if I wanted to do an analysis that did not lose any observations from the traveling data set. 
+
+```{r}
+inner_join(gapminder, Travelling, by="country")
+```
+**inner_join()** only includes observations that have a country in both gapminder and travelling. This join would be helpful if I wanted to do an analysis that only included observations that were both data sets. 
+
+```{r}
+intersect(gapminder$country, Travelling$country)
+```
+**intersect()** only works for comparing columns that match and therefore I had to focus the join on the only shared column between gapminder and traveling (i.e. country). This shows me the countries that are in both data sets. 
+
+```{r}
+union(gapminder$country, Travelling$country)
+```
+**union()** only works for comparing columns that match and therefore I had to focus on the only shared column between gapminder and traveling (i.e. country). This shows me all the unique observations in both data sets and therefore shows all possibilities (i.e. countries only in the traveling data set, countries only in the gapminder data set, and countries in both data sets).
+
+```{r}
+setdiff(Travelling$country, gapminder$country)
+```
+**setdiff()** only works for comparing columns that match and therefore I had to focus the join on the only shared column between gapminder and traveling (i.e. country). This shows me the countries that are in the travelling data set and not in gapminder data set. There is only one country.
+
+intersect(), union(), and setdiff() are all useful in trying to understand how much overlap exists between the joining variable for two data sets (in this case, country). 
+
+```{r}
+semi_join(gapminder, Travelling)
+```
+**semi_join()** subsets the gapminder data set by only including countries that are in the Travelling data set. It does not actually join the two data sets together. This could be helpful when doing an analysis that does not require the two data sets to be merged together, but does require subsetting one data frame based on another. 
+
+```{r}
+anti_join(Travelling, gapminder)
+```
+**anti_join()** subsets the traveling data set to only include those observations that are not in gapminder without actually joining the two data sets together. This would be helpful to understand observations that are mutually exclusive in one data set based on another. 
+
+## Reflections
+* **Mission 1**:
+    * I liked the challenge of trying to tidy the gapminder data frame. 
+    * I struggled trying to create a scatter plot that told a complete story. Since it was comparing two countries over time, I wanted to make the fill be the years (otherwise I didn't think the visual made much sense). The "year" variable was an integer and therefore continuous. The continuous scale made it hard to distinguish visually the years. Also, there were too many points to make unique shapes. I therefore created a legend that converted year to a factor, which utilized more colours making it a lot easier to tell years. 
+    
+* **Mission 2**:
+    * It was harder than I thought it would be to create a second data set to practice joining. 
+    * Working through the different join options made me better understand how I can use them. For example, subsetting using anti_join() and semi_join() could be really handy as they don't actually join the tables yet ensure you are only working with a subset related to the second table. 
